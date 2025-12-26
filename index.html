@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f0f12">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly</title>
+
+<style>
+:root {
+    --bg: #0f0f12;
+    --card: #17171c;
+    --soft: #23232a;
+    --text-main: #ffffff;
+    --text-sub: rgba(255,255,255,0.65);
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --shadow-soft: 0 8px 24px rgba(0,0,0,0.35);
+    --goal-accent: linear-gradient(135deg, #8e9aff, #b8c1ff);
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text-main);
+}
+
+.page { display: none; padding: 20px; }
+.page.active { display: block; }
+
+/* HOME */
+.home-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* GOAL */
+.goal-card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-soft);
+}
+
+.goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.goal-title { font-size: 15px; font-weight: 700; }
+.goal-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--goal-accent);
+    color: #000;
+    font-weight: 700;
+}
+
+.goal-content {
+    background: var(--soft);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-sub);
+    outline: none;
+}
+
+.goal-content.editing {
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+    color: var(--text-main);
+}
+
+.detail-card {
+    background: linear-gradient(180deg, #17171c, #1e1e25);
+}
+
+.detail-card .goal-content {
+    color: var(--text-sub);
+    font-size: 14px;
+}
+
+/* HOME BUTTON */
+.home-button {
+    height: 88px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    margin: 0;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    touch-action: manipulation;
+    color: #ffffff;
+}
+.home-button:active { transform: scale(0.98); }
+
+.add-button {
+    background: var(--soft);
+    color: var(--text-sub);
+}
+
+/* CALENDAR */
+.month-nav {
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    gap: 10px;
+    background: var(--card);
+    padding: 12px 14px;
+    border-radius: 18px;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 14px;
+}
+.nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    border: none;
+    background: var(--soft);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.nav-btn:active {
+    transform: scale(0.95);
+}
+.month-title {
+    text-align: center;
+    line-height: 1.2;
+}
+#yearText {
+    font-size: 12px;
+    color: var(--text-sub);
+    font-weight: 500;
+}
+#monthText {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+.calendar {
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    column-gap: 0;   /* ⬅ 좌우 붙이기 */
+    row-gap: 10px;   /* ⬅ 위아래만 간격 */
+}
+.day-name {
+    text-align:center;
+    font-size:13px;
+    color:var(--text-sub);
+}
+.date {
+    height:52px;
+    border-radius:14px;
+    background:var(--card);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    position: relative;
+}
+.date.today::after {
+    content:"";
+    width:6px;
+    height:6px;
+    background:#ffffff;
+    border-radius:50%;
+    position:absolute;
+    left:50%;
+    bottom:8px;
+    transform:translateX(-50%);
+}
+/* .date.done {
+    background:var(--theme);
+    font-weight:700;
+} */
+.date.done {
+    margin-left: 0;
+    margin-right: 0;
+}
+.today-btn {
+    background:#2c2c34;
+    margin:10px 0;
+}
+
+.date.done {
+    background: var(--theme);
+    color: #fff;
+    font-weight: 700;
+}
+
+.date.done {
+    background: var(--theme);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 0;
+}
+
+.date.done.week-start {
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
+}
+
+.date.done.week-end {
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+/* PROGRESS */
+.container {
+    width: 100%;
+    max-width: 90%;
+    margin: 20px auto;
+    background: var(--card);
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+}
+
+.progress-wrapper {
+    height: 40px;
+    background: #3a3a45;
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 20px 0 10px;
+    touch-action: none;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--theme), #ffffff);
+    width: 0%;
+    transition: width 0.08s linear;
+}
+
+.progress-slider {
+    width:100%;
+    margin:8px 0 14px;
+}
+
+button {
+    width:100%;
+    height:52px;
+    margin-top:14px;
+    border:none;
+    border-radius:16px;
+    background:var(--theme);
+    color:#fff;
+    font-weight:600;
+    cursor:pointer;
+}
+.reset { background:#3a3a42; }
+
+/* MODAL */
+.modal {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    align-items:flex-end;
+}
+.modal.active { display:flex; }
+.modal-box {
+    background:var(--card);
+    width:100%;
+    padding:24px;
+    border-radius:24px 24px 0 0;
+}
+.danger { background:#e53935; }
+
+.progress-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 6px;
+    pointer-events: none;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+/* COLOR PRESET */
+.color-grid {
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:10px;
+    margin:14px 0;
+}
+.color-chip {
+    height:36px;
+    border-radius:10px;
+    cursor:pointer;
+    border:2px solid rgba(255,255,255,0.2);
+}
+/* calendar grid 기준점 */
+#calendar {
+    position: relative;
+}
+
+.week-selected {
+    outline: 2px solid var(--theme);
+}
+
+/* MONTH COMPLETE STAMP - CALENDAR ONLY */
+#calendar.completed-month::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-12deg);
+    width: 85%;
+    height: 85%;
+    background-image: url("goodjob.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 10;
+}
+#homeButtons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.home-button {
+    aspect-ratio: 1 / 1;   /* 정사각형 유지 */
+    height: auto;          /* 중요*/
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="homePage" class="page active">
+    <div class="home-wrapper">
+        <div class="goal-card">
+            <div class="goal-header">
+                <div class="goal-title">Goal</div>
+                <div class="goal-badge">WEEKLY</div>
+            </div>
+            <div id="goalContent" class="goal-content" contenteditable="false"></div>
+        </div>
+        <div id="homeButtons"></div>
+    </div>
+</div>
+
+<div id="calendarPage" class="page">
+    <div class="month-nav">
+        <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+        <div class="month-title">
+            <div id="yearText"></div>
+            <div id="monthText"></div>
+        </div>
+        <button class="nav-btn" onclick="changeMonth(1)">›</button>
+    </div>    
+    <div class="calendar" id="calendar"></div>
+    <button class="today-btn" onclick="goToday()">오늘</button>
+    <button onclick="goHome()">← 홈으로</button>
+</div>
+
+<div id="progressPage" class="page">
+    <div class="container">
+        <h2 id="exerciseTitle"></h2>
+        <h3 id="dateTitle"></h3>
+        <div class="progress-text" id="percentText">0%</div>
+        <div class="progress-wrapper">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <button id="add10Btn">+10%</button>
+        <button onclick="completeProgress()">완료 🏆</button>
+        <button onclick="goCalendar()">← 달력으로</button>
+        <button onclick="goHome()">← 홈으로</button>
+    </div>
+</div>
+
+<div id="manageModal" class="modal">
+    <div class="modal-box">
+        <h3>이름 수정</h3>
+        <input id="nameEditor" type="text" style="width:100%;height:44px;border-radius:12px;border:none;padding:0 12px;margin:10px 0;background:#23232a;color:#fff;">
+        <input type="color" id="colorPicker">
+        <div class="color-grid" id="colorPresets"></div>
+        <button onclick="moveExercise(-1)">⬆ 위로</button>
+        <button onclick="moveExercise(1)">⬇ 아래로</button>
+        <button class="danger" onclick="deleteExercise()">삭제</button>
+        <button onclick="closeModal()">확인</button>
+    </div>
+</div>
+
+<div id="addModal" class="modal">
+    <div class="modal-box">
+        <h3>추가</h3>
+        <input id="newExerciseInput" type="text" placeholder="이름을 입력하세요" style="width:100%;height:44px;border-radius:12px;border:none;padding:0 12px;margin:12px 0;background:#23232a;color:#fff;">
+        <button onclick="confirmAddExercise()">추가</button>
+        <button class="reset" onclick="closeAddModal()">취소</button>
+    </div>
+</div>
+
+<script>
+function haptic(){
+    if (navigator.vibrate) { navigator.vibrate(15); }
+}
+
+function addLongPress(el, callback, delay = 600) {
+    let timer=null,longPressed=false;
+    const start=()=>{longPressed=false;timer=setTimeout(()=>{longPressed=true;callback();},delay);};
+    const cancel=e=>{clearTimeout(timer);if(longPressed){e.preventDefault();e.stopPropagation();}};
+    el.addEventListener("mousedown",start);
+    el.addEventListener("mouseup",cancel);
+    el.addEventListener("mouseleave",cancel);
+    el.addEventListener("touchstart",start,{passive:true});
+    el.addEventListener("touchend",cancel);
+    el.addEventListener("touchcancel",cancel);
+}
+
+const GOAL_KEY="weekly_goal_text";
+goalContent.innerText=localStorage.getItem(GOAL_KEY)||`청소 1회\n정리정돈 1회`;
+
+addLongPress(goalContent,()=>{
+    goalContent.contentEditable="true";
+    goalContent.classList.add("editing");
+    goalContent.focus();
+});
+goalContent.onblur=()=>{
+    goalContent.contentEditable="false";
+    goalContent.classList.remove("editing");
+    localStorage.setItem(GOAL_KEY,goalContent.innerText.trim());
+};
+goalContent.addEventListener("dblclick", () => {
+    goalContent.contentEditable = "true";
+    goalContent.classList.add("editing");
+    goalContent.focus();
+});
+let goalLastTap = 0;
+goalContent.addEventListener("touchend", (e) => {
+    const now = Date.now();
+    if (now - goalLastTap < 300) {
+        goalContent.contentEditable = "true";
+        goalContent.classList.add("editing");
+        goalContent.focus();
+    }
+    goalLastTap = now;
+});
+
+const EX_KEY="weekly_exercise_list";
+let exercises=JSON.parse(localStorage.getItem(EX_KEY))||[{name:"청소",color:"#8e9aff"}];
+let currentExercise,manageIndex;
+let currentYear=new Date().getFullYear(),currentMonth=new Date().getMonth();
+let selectedDate="",progress=0;
+
+function saveExercises(){localStorage.setItem(EX_KEY,JSON.stringify(exercises));}
+
+function renderHome(){
+    homeButtons.innerHTML="";
+    exercises.forEach((e,i)=>{
+        const b=document.createElement("div");
+        b.className="home-button";
+        b.style.background=e.color;
+        b.innerText=e.name;
+        addLongPress(b,()=>openManage(i));
+        b.onclick=()=>openCalendar(e);
+        homeButtons.appendChild(b);
+    });
+    const add=document.createElement("div");
+    add.className="home-button add-button";
+    add.innerText="+ 추가하기";
+    add.onclick=addExercise;
+    homeButtons.appendChild(add);
+}
+
+function addExercise(){
+    newExerciseInput.value = "";
+    addModal.classList.add("active");
+    setTimeout(()=>newExerciseInput.focus(), 0);
+}
+
+function closeAddModal(){ addModal.classList.remove("active"); }
+
+function confirmAddExercise(){
+    const name = newExerciseInput.value.trim();
+    if(!name) return;
+    const exists = exercises.some(e => e.name.trim().toLowerCase() === name.toLowerCase());
+    if(exists){ alert("이미 존재하는 이름입니다"); return; }
+    exercises.push({name, color: "#262a33"});
+    saveExercises();
+    renderHome();
+    closeAddModal();
+    openManage(exercises.length - 1);
+}
+
+const presetColors = [
+  "#262a33","#2f343e","#37404a","#424b57","#4b5563",
+  "#1e2a3a", "#24344c", "#2a3e5d", "#30486f","#365181",
+  "#3a1e23", "#45262b", "#502f34", "#5b373d","#663f46",
+  "#1e3a26", "#23452f", "#2a5038", "#2f5b41","#36644a",
+  "#3a331e", "#453d26", "#50462f", "#5b5037","#665740"
+];
+
+const calendarGrid = document.getElementById("calendar");
+
+function openManage(i){
+    manageIndex=i;
+    nameEditor.value = exercises[i].name;
+    colorPicker.value=exercises[i].color;
+    colorPresets.innerHTML="";
+    presetColors.forEach(c=>{
+        const d=document.createElement("div");
+        d.className="color-chip";
+        d.style.background=c;
+        d.onclick=(e)=>{
+            e.preventDefault(); e.stopPropagation();
+            exercises[manageIndex].color=c;
+            colorPicker.value=c;
+            saveExercises();
+            renderHome();
+        };
+        d.ondblclick=(e)=>{
+            e.preventDefault(); e.stopPropagation();
+            exercises[manageIndex].color=c;
+            saveExercises();
+            renderHome();
+            setTimeout(()=>{closeModal(); goHome();},0);
+        };
+        let lastTap=0;
+        d.ontouchend=(e)=>{
+            e.preventDefault(); e.stopPropagation();
+            const now=Date.now();
+            if(now-lastTap<300){
+                exercises[manageIndex].color=c;
+                saveExercises();
+                renderHome();
+                setTimeout(()=>{closeModal(); goHome();},0);
+            }
+            lastTap=now;
+        };
+        colorPresets.appendChild(d);
+    });
+    manageModal.classList.add("active");
+}
+
+colorPicker.oninput=e=>{
+    exercises[manageIndex].color=e.target.value;
+    saveExercises(); renderHome();
+};
+
+function moveExercise(d){
+    const j=manageIndex+d;
+    if(j<0||j>=exercises.length)return;
+    [exercises[manageIndex],exercises[j]]=[exercises[j],exercises[manageIndex]];
+    manageIndex=j;
+    saveExercises(); renderHome();
+}
+
+function deleteExercise(){
+    if(!confirm("정말 삭제할까요?"))return;
+    localStorage.removeItem("records_"+exercises[manageIndex].name);
+    exercises.splice(manageIndex,1);
+    saveExercises(); closeModal(); renderHome();
+}
+function closeModal(){ manageModal.classList.remove("active"); }
+
+function openCalendar(e){
+    currentExercise=e;
+    document.documentElement.style.setProperty("--theme",e.color);
+    homePage.classList.remove("active");
+    calendarPage.classList.add("active");
+    buildCalendar();
+}
+
+function goHome(){
+    calendarPage.classList.remove("active");
+    progressPage.classList.remove("active");
+    homePage.classList.add("active");
+}
+
+function records(){
+  return JSON.parse(
+    localStorage.getItem("weekly_records_" + currentExercise.name) || "{}"
+  );
+}
+function saveRecords(r){
+  localStorage.setItem(
+    "weekly_records_" + currentExercise.name,
+    JSON.stringify(r)
+  );
+}
+
+function buildCalendar() {
+    const today = new Date();
+    calendar.innerHTML = "";
+
+    // 요일 헤더 (일~토)
+    ["일","월","화","수","목","금","토"].forEach(d => {
+        const h = document.createElement("div");
+        h.className = "day-name";
+        h.innerText = d;
+        calendar.appendChild(h);
+    });
+
+    yearText.innerText = currentYear + "년";
+    monthText.innerText = currentMonth + 1 + "월";
+
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay(); // 0=일
+    const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    // 앞쪽 빈칸
+    for (let i = 0; i < firstDay; i++) {
+        calendar.appendChild(document.createElement("div"));
+    }
+
+    const r = records();
+
+    for (let d = 1; d <= lastDate; d++) {
+        const div = document.createElement("div");
+        div.classList.add("date");
+        div.innerText = d;
+
+        const dateObj = new Date(currentYear, currentMonth, d);
+        const day = dateObj.getDay(); // 0=일, 6=토
+        const weekKey = getWeekKey(dateObj);
+        const rec = r[weekKey];
+
+        // 오늘 표시
+        if (
+            d === today.getDate() &&
+            currentMonth === today.getMonth() &&
+            currentYear === today.getFullYear()
+        ) {
+            div.classList.add("today");
+        }
+
+        // 완료된 주 → 한 줄 색칠
+        if (rec?.done) {
+            div.classList.add("done");
+
+            if (day === 0) div.classList.add("week-start"); // 일요일
+            if (day === 6) div.classList.add("week-end");   // 토요일
+        }
+
+        div.onclick = () => openProgress(weekKey);
+
+        calendar.appendChild(div);
+    }
+
+    checkMonthCompleted();
+}
+
+function checkMonthCompleted() {
+    const r = records();
+    const checked = new Set();
+    const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    for (let d = 1; d <= lastDay; d++) {
+        const wk = getWeekKey(new Date(currentYear, currentMonth, d));
+        if (checked.has(wk)) continue;
+        checked.add(wk);
+        if (!r[wk]?.done) {
+            calendarGrid.classList.remove("completed-month");
+            return;
+        }
+    }
+    calendarGrid.classList.add("completed-month");
+}
+
+function changeMonth(diff){
+    const dt=new Date(currentYear,currentMonth+diff);
+    currentYear=dt.getFullYear();
+    currentMonth=dt.getMonth();
+    buildCalendar();
+}
+
+function getWeekKey(date) {
+    const d = new Date(date);
+    d.setHours(0,0,0,0);
+
+    // 일요일 기준으로 주 시작
+    const sunday = new Date(d);
+    sunday.setDate(d.getDate() - d.getDay());
+
+    const year = sunday.getFullYear();
+    const month = String(sunday.getMonth() + 1).padStart(2, "0");
+    const day = String(sunday.getDate()).padStart(2, "0");
+
+    // 예: 2025-W-01-05 (1월 5일이 시작인 주)
+    return `${year}-W-${month}-${day}`;
+}
+
+// function openProgress(ds){
+//     selectedDate=ds;
+//     progress=records()[ds]||0;
+//     exerciseTitle.innerText=currentExercise.name;
+//     dateTitle.innerText=ds;
+//     updateProgress();
+//     calendarPage.classList.remove("active");
+//     progressPage.classList.add("active");
+// }
+
+function openProgress(weekKey){
+    selectedDate = weekKey;
+    // progress = records()[weekKey] || 0;
+    const r = records()[weekKey];
+    progress = r?.value || 0;
+
+    exerciseTitle.innerText = currentExercise.name;
+    dateTitle.innerText = weekKey;
+
+    updateProgress();
+
+    calendarPage.classList.remove("active");
+    progressPage.classList.add("active");
+}
+
+function updateProgress(){
+    progressBar.style.width = progress + "%";
+    percentText.innerText = progress + "%";
+    const r = records();
+    // r[selectedDate] = progress;
+    r[selectedDate] = {
+        value: progress,
+        done: progress >= 100
+    };
+    saveRecords(r);
+}
+
+const add10Btn = document.getElementById("add10Btn");
+add10Btn.onclick = () => {
+    if(progress < 100){
+        progress += 10;
+        if(progress > 100) progress = 100;
+        updateProgress();
+    }
+};
+
+function completeProgress(){
+    progress = 100;
+    updateProgress();
+    setTimeout(() => { goCalendar(); }, 150);
+}
+
+function goCalendar(){
+    progressPage.classList.remove("active");
+    calendarPage.classList.add("active");
+    buildCalendar();
+}
+
+const progressWrapper = document.querySelector(".progress-wrapper");
+let dragging = false;
+function getClientX(e) {
+    if (e.touches && e.touches.length) return e.touches[0].clientX;
+    if (e.changedTouches && e.changedTouches.length) return e.changedTouches[0].clientX;
+    return e.clientX;
+}
+function updateProgressByDrag(e) {
+    if (!dragging) return;
+    const rect = progressWrapper.getBoundingClientRect();
+    const clientX = getClientX(e);
+    if (clientX == null) return;
+    let ratio = (clientX - rect.left) / rect.width;
+    ratio = Math.max(0, Math.min(1, ratio));
+    progress = Math.round(ratio * 10) * 10;
+    updateProgress();
+}
+progressWrapper.addEventListener("mousedown", (e) => { dragging = true; updateProgressByDrag(e); });
+document.addEventListener("mousemove", updateProgressByDrag);
+document.addEventListener("mouseup", () => { if (dragging) haptic(); dragging = false; });
+progressWrapper.addEventListener("touchstart", (e) => { e.preventDefault(); dragging = true; updateProgressByDrag(e); }, { passive: false });
+document.addEventListener("touchmove", updateProgressByDrag, { passive: false });
+document.addEventListener("touchend", () => { if (dragging) haptic(); dragging = false; });
+
+nameEditor.onchange = () => {
+    const newName = nameEditor.value.trim();
+    if(!newName){ nameEditor.value = exercises[manageIndex].name; return; }
+    if(newName === exercises[manageIndex].name) return;
+    const exists = exercises.some((e, idx)=> idx !== manageIndex && e.name.trim().toLowerCase() === newName.toLowerCase());
+    if(exists){ alert("이미 존재하는 이름입니다"); nameEditor.value = exercises[manageIndex].name; return; }
+    const oldKey = "records_" + exercises[manageIndex].name;
+    const newKey = "records_" + newName;
+    const data = localStorage.getItem(oldKey);
+    if(data){ localStorage.setItem(newKey, data); localStorage.removeItem(oldKey); }
+    exercises[manageIndex].name = newName;
+    saveExercises();
+    renderHome();
+};
+
+nameEditor.onkeydown = e => { if(e.key === "Enter"){ nameEditor.blur(); } };
+
+function goToday(){
+    const today = new Date();
+    currentYear = today.getFullYear();
+    currentMonth = today.getMonth();
+    buildCalendar();
+
+    const weekKey = getWeekKey(today);
+    openProgress(weekKey);
+}
+
+renderHome();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("./service-worker.js"); });
+}
+</script>
+</body>
+</html>
