@@ -1,6 +1,6 @@
 {
-  "name": "Daily",
-  "short_name": "Daily",
+  "name": "Weekly",
+  "short_name": "Weekly",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f0f12",

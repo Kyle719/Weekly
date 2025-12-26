@@ -1,4 +1,4 @@
-const CACHE_NAME = "weekly-v1"; // ⭐ 버전 올리기 (중요)
+const CACHE_NAME = "weekly-v2"; // ⭐ 버전 올리기 (중요)
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
